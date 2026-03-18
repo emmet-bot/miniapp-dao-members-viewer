@@ -10,6 +10,7 @@
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
+    "@erc725/erc725.js": "^0.28.2",
     "@lukso/web-components": "^1.184.0",
     "ethereum-blockies-base64": "^1.0.2",
     "viem": "^2.21.0",
