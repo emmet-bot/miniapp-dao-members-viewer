@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import type { MemberData } from '../composables/useMembers'
-import { CHAIN_NAMES, KNOWN_CONTRACTS } from '../lib/constants'
+import { CHAIN_NAMES, CHAIN_EXPLORERS, KNOWN_CONTRACTS } from '../lib/constants'
 import PermissionBadge from './PermissionBadge.vue'
 
 const props = defineProps<{
@@ -122,17 +122,24 @@ function truncateHex(hex: string, chars = 8): string {
           >
             {{ typeLabel }}
           </span>
-          <!-- Chain badges -->
-          <span
+          <!-- Chain badges (linked to block explorers) -->
+          <a
             v-for="cid in member.chains"
             :key="cid"
-            class="text-[10px] px-1.5 py-0.5 rounded font-medium"
+            :href="(CHAIN_EXPLORERS[cid] || '') + member.address"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-[10px] px-1.5 py-0.5 rounded font-medium hover:opacity-80 transition-opacity no-underline"
             :class="cid === 42
               ? 'bg-lukso-pink/10 text-lukso-pink'
-              : 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400'"
+              : cid === 1
+                ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'
+                : cid === 8453
+                  ? 'bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400'
+                  : 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400'"
           >
             {{ CHAIN_NAMES[cid] || `Chain ${cid}` }}
-          </span>
+          </a>
         </div>
       </div>
     </div>

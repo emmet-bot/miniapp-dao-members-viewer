@@ -14,6 +14,15 @@ export const CHAIN_NAMES: Record<number, string> = {
   84532: 'Base Sepolia',
 }
 
+export const CHAIN_EXPLORERS: Record<number, string> = {
+  42: 'https://explorer.lukso.network/address/',
+  4201: 'https://explorer.testnet.lukso.network/address/',
+  1: 'https://etherscan.io/address/',
+  11155111: 'https://sepolia.etherscan.io/address/',
+  8453: 'https://basescan.org/address/',
+  84532: 'https://sepolia.basescan.org/address/',
+}
+
 export const IPFS_GATEWAY = 'https://api.universalprofile.cloud/ipfs/'
 
 export const PERMISSION_LABELS: Record<string, string> = {

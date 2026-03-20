@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { UpProfileData } from '../composables/useMembers'
-import { CHAIN_NAMES } from '../lib/constants'
+import { CHAIN_NAMES, CHAIN_EXPLORERS } from '../lib/constants'
 
 const props = defineProps<{
   upProfile: UpProfileData
@@ -41,16 +41,23 @@ const shortAddress = computed(() => {
               {{ shortAddress }}
             </h1>
           </template>
-          <span
+          <a
             v-for="cid in upProfile.chains"
             :key="cid"
-            class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
+            :href="(CHAIN_EXPLORERS[cid] || '') + upProfile.address"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium hover:opacity-80 transition-opacity"
             :class="cid === 42
               ? 'bg-lukso-pink/10 text-lukso-pink'
-              : 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400'"
+              : cid === 1
+                ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'
+                : cid === 8453
+                  ? 'bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400'
+                  : 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400'"
           >
             {{ CHAIN_NAMES[cid] || `Chain ${cid}` }}
-          </span>
+          </a>
         </div>
         <a
           :href="explorerUrl"
