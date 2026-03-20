@@ -110,14 +110,13 @@ function truncateHex(hex: string, chars = 8): string {
         <!-- Badges row -->
         <div class="flex items-center gap-1.5 mt-1.5 flex-wrap">
           <span
+            v-if="!isUniversalProfile"
             class="text-[10px] px-1.5 py-0.5 rounded font-medium cursor-default"
-            :class="isUniversalProfile
-              ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'
-              : knownContract
-                ? 'bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400'
-                : member.isContract
-                  ? 'bg-teal-100 text-teal-600 dark:bg-teal-900/30 dark:text-teal-400'
-                  : 'bg-neutral-200 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400'"
+            :class="knownContract
+              ? 'bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400'
+              : member.isContract
+                ? 'bg-teal-100 text-teal-600 dark:bg-teal-900/30 dark:text-teal-400'
+                : 'bg-neutral-200 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400'"
             :title="knownContract?.fullName || ''"
           >
             {{ typeLabel }}
