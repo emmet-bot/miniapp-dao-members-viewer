@@ -37,7 +37,7 @@ const { members, upProfile, loading, error } = useMembers(chainId, address)
       -->
 
       <!-- Title with UP username -->
-      <div v-if="upProfile" class="mb-4 flex items-center gap-2 flex-wrap">
+      <div v-if="upProfile" class="mb-6 flex items-center justify-center gap-2 flex-wrap">
         <lukso-username
           v-if="upProfile.profile?.name"
           :name="upProfile.profile.name"
@@ -52,7 +52,7 @@ const { members, upProfile, loading, error } = useMembers(chainId, address)
           {{ upProfile.address.slice(0, 6) }}...{{ upProfile.address.slice(-4) }}
         </span>
         <span class="text-lg font-medium text-neutral-500 dark:text-neutral-400">
-          controllers
+          on-chain controllers
         </span>
       </div>
 
