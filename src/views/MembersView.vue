@@ -28,11 +28,13 @@ const { members, upProfile, loading, error } = useMembers(chainId, address)
     </template>
 
     <template v-else>
+      <!-- Header card hidden for now
       <ProfileHeader
         v-if="upProfile"
         :up-profile="upProfile"
         :member-count="members.length"
       />
+      -->
 
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <MemberCard
