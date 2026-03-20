@@ -36,6 +36,26 @@ const { members, upProfile, loading, error } = useMembers(chainId, address)
       />
       -->
 
+      <!-- Title with UP username -->
+      <div v-if="upProfile" class="mb-4 flex items-center gap-2 flex-wrap">
+        <lukso-username
+          v-if="upProfile.profile?.name"
+          :name="upProfile.profile.name"
+          :address="upProfile.address"
+          prefix="@"
+          size="large"
+        ></lukso-username>
+        <span
+          v-else
+          class="text-lg font-mono text-neutral-600 dark:text-neutral-400"
+        >
+          {{ upProfile.address.slice(0, 6) }}...{{ upProfile.address.slice(-4) }}
+        </span>
+        <span class="text-lg font-medium text-neutral-500 dark:text-neutral-400">
+          controllers
+        </span>
+      </div>
+
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <MemberCard
           v-for="member in members"
