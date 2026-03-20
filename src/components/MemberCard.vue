@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import type { MemberData } from '../composables/useMembers'
-import { CHAIN_NAMES } from '../lib/constants'
+import { CHAIN_NAMES, KNOWN_CONTRACTS } from '../lib/constants'
 import PermissionBadge from './PermissionBadge.vue'
 
 const props = defineProps<{
@@ -22,12 +22,28 @@ const shortAddress = computed(() => {
   return `${addr.slice(0, 6)}...${addr.slice(-4)}`
 })
 
+const knownContract = computed(() => {
+  return KNOWN_CONTRACTS[props.member.address.toLowerCase()] || null
+})
+
+const isUniversalProfile = computed(() => {
+  return props.member.isContract && !knownContract.value && props.member.profile !== null
+})
+
 const profileImageUrl = computed(() => {
   return props.member.profile?.profileImage || props.member.blockieUrl
 })
 
 const displayName = computed(() => {
+  if (knownContract.value) return null
   return props.member.profile?.name || null
+})
+
+const typeLabel = computed(() => {
+  if (knownContract.value) return knownContract.value.label
+  if (isUniversalProfile.value) return 'Universal Profile'
+  if (props.member.isContract) return 'Contract'
+  return 'EOA'
 })
 
 function truncateHex(hex: string, chars = 8): string {
@@ -94,12 +110,17 @@ function truncateHex(hex: string, chars = 8): string {
         <!-- Badges row -->
         <div class="flex items-center gap-1.5 mt-1.5 flex-wrap">
           <span
-            class="text-[10px] px-1.5 py-0.5 rounded font-medium"
-            :class="member.isContract
+            class="text-[10px] px-1.5 py-0.5 rounded font-medium cursor-default"
+            :class="isUniversalProfile
               ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'
-              : 'bg-neutral-200 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400'"
+              : knownContract
+                ? 'bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400'
+                : member.isContract
+                  ? 'bg-teal-100 text-teal-600 dark:bg-teal-900/30 dark:text-teal-400'
+                  : 'bg-neutral-200 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400'"
+            :title="knownContract?.fullName || ''"
           >
-            {{ member.isContract ? 'Universal Profile' : 'EOA' }}
+            {{ typeLabel }}
           </span>
           <!-- Chain badges -->
           <span

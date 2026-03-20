@@ -49,3 +49,28 @@ export const CALL_TYPES: Record<number, string> = {
   4: 'DELEGATECALL',
   8: 'VALUE',
 }
+
+/**
+ * Known LUKSO contract addresses mapped to their labels.
+ * These are implementation contracts, not Universal Profiles.
+ */
+export const KNOWN_CONTRACTS: Record<string, { label: string; fullName: string }> = {
+  // LSP1 Universal Receiver Delegate implementations
+  '0x7870c5b8bc9572a8001c3f96f7ff59961b23500d': {
+    label: 'URD',
+    fullName: 'Universal Receiver Delegate (LSP1) v0.14.0',
+  },
+  '0xa5467dfe7019bf2c7c5f7a707711b9d4cad118c8': {
+    label: 'URD',
+    fullName: 'Universal Receiver Delegate (LSP1) v0.12.1',
+  },
+  // LSP6 Key Manager implementations
+  '0xa75684d7d048704a2db851d05ba0c3cbe226264c': {
+    label: 'Key Manager',
+    fullName: 'LSP6 Key Manager v0.12.1',
+  },
+  '0x2fe3aed98684e7351ad2d408a43ce09a738bf8a4': {
+    label: 'Key Manager',
+    fullName: 'LSP6 Key Manager v0.14.0',
+  },
+}
