@@ -1,6 +1,8 @@
 export const RPC_URLS: Record<number, string> = {
   42: 'https://rpc.mainnet.lukso.network',
   4201: 'https://rpc.testnet.lukso.network',
+  1: 'https://eth.drpc.org',
+  8453: 'https://mainnet.base.org',
 }
 
 export const CHAIN_NAMES: Record<number, string> = {

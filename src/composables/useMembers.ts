@@ -15,7 +15,7 @@ import {
 } from '../lib/permissions'
 import { getBlockie } from '../lib/identicon'
 
-const SUPPORTED_CHAINS = [42, 4201]
+const SUPPORTED_CHAINS = [42, 4201, 1, 8453]
 
 export interface MemberData {
   address: string
