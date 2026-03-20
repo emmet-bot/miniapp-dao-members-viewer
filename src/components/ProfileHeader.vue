@@ -28,9 +28,19 @@ const shortAddress = computed(() => {
       </div>
       <div class="min-w-0 flex-1">
         <div class="flex items-center gap-2 flex-wrap">
-          <h1 class="text-xl font-bold text-neutral-900 dark:text-neutral-100 truncate">
-            {{ upProfile.profile?.name || shortAddress }}
-          </h1>
+          <template v-if="upProfile.profile?.name">
+            <lukso-username
+              :name="upProfile.profile.name"
+              :address="upProfile.address"
+              prefix="@"
+              size="large"
+            ></lukso-username>
+          </template>
+          <template v-else>
+            <h1 class="text-xl font-bold text-neutral-900 dark:text-neutral-100 truncate">
+              {{ shortAddress }}
+            </h1>
+          </template>
           <span
             v-for="cid in upProfile.chains"
             :key="cid"
@@ -46,9 +56,9 @@ const shortAddress = computed(() => {
           :href="explorerUrl"
           target="_blank"
           rel="noopener noreferrer"
-          class="text-sm text-neutral-500 dark:text-neutral-400 hover:text-lukso-pink transition-colors font-mono"
+          class="block text-[11px] text-neutral-400 dark:text-neutral-500 hover:text-lukso-pink transition-colors font-mono mt-0.5"
         >
-          {{ shortAddress }}
+          {{ upProfile.address }}
         </a>
         <p v-if="upProfile.profile?.description" class="text-sm text-neutral-600 dark:text-neutral-400 mt-1 line-clamp-2">
           {{ upProfile.profile.description }}
