@@ -4,8 +4,12 @@ export const RPC_URLS: Record<number, string> = {
 }
 
 export const CHAIN_NAMES: Record<number, string> = {
-  42: 'Mainnet',
-  4201: 'Testnet',
+  42: 'LUKSO',
+  4201: 'LUKSO Testnet',
+  1: 'Ethereum',
+  11155111: 'Ethereum Sepolia',
+  8453: 'Base',
+  84532: 'Base Sepolia',
 }
 
 export const IPFS_GATEWAY = 'https://api.universalprofile.cloud/ipfs/'
