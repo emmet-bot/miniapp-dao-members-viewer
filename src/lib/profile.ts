@@ -1,4 +1,5 @@
 import { IPFS_GATEWAY } from './constants'
+import { fetchLSP3Profile } from './blockchain'
 
 export interface ProfileData {
   name: string
@@ -15,16 +16,11 @@ function resolveUrl(url: string): string {
   return url
 }
 
-function getBestImage(
-  images: any[] | undefined
-): string | null {
+function getBestImage(images: any[] | undefined): string | null {
   if (!images || images.length === 0) return null
-  // images is an array of image entries, each can have multiple sizes
   const first = images[0]
   if (!first) return null
-  // Could be { url: string } or array of sizes [{url, width, height}]
   if (Array.isArray(first)) {
-    // Array of sizes - pick the smallest reasonable one
     const sorted = [...first].sort(
       (a: any, b: any) => (a.width || 9999) - (b.width || 9999)
     )
@@ -35,48 +31,16 @@ function getBestImage(
   return null
 }
 
-export function decodeJsonUrl(hex: string): { url: string } | null {
-  try {
-    // JSONURL format: hashFunction(4) + hash(32) + url
-    // The first byte pair after 0x tells us the encoding
-    const data = hex.startsWith('0x') ? hex.slice(2) : hex
-
-    // Check for VerifiableURI format: 0x0000 prefix for JSONURL
-    // hashFunction (bytes4) + json hash (bytes32) + url (remaining)
-    const hashFunctionBytes = data.slice(0, 8)
-    const hashBytes = data.slice(8, 72)
-
-    // The rest is the URL encoded as UTF-8
-    const urlHex = data.slice(72)
-    if (urlHex.length === 0) return null
-
-    const url = hexToUtf8(urlHex)
-    return { url: resolveUrl(url) }
-  } catch {
-    return null
-  }
-}
-
-function hexToUtf8(hex: string): string {
-  const bytes = new Uint8Array(hex.length / 2)
-  for (let i = 0; i < hex.length; i += 2) {
-    bytes[i / 2] = parseInt(hex.slice(i, i + 2), 16)
-  }
-  return new TextDecoder().decode(bytes)
-}
-
 export async function fetchProfileData(
-  lsp3Hex: string
+  address: string,
+  chainId: number
 ): Promise<ProfileData | null> {
   try {
-    const decoded = decodeJsonUrl(lsp3Hex)
-    if (!decoded) return null
+    const result = await fetchLSP3Profile(address, chainId)
+    if (!result) return null
 
-    const response = await fetch(decoded.url)
-    if (!response.ok) return null
-
-    const json = await response.json()
-    const profile = json.LSP3Profile || json
+    // fetchData('LSP3Profile') returns { LSP3Profile: { ... } } or the profile directly
+    const profile = result.LSP3Profile || result
 
     return {
       name: profile.name || '',

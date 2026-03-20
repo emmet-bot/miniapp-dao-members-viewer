@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import type { MemberData } from '../composables/useMembers'
+import { CHAIN_NAMES } from '../lib/constants'
 import PermissionBadge from './PermissionBadge.vue'
 
 const props = defineProps<{
   member: MemberData
-  chainId: number
 }>()
 
 const expanded = ref(false)
@@ -77,6 +77,17 @@ function truncateHex(hex: string, chars = 8): string {
               : 'bg-neutral-200 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400'"
           >
             {{ member.isContract ? 'Contract' : 'EOA' }}
+          </span>
+          <!-- Chain badges -->
+          <span
+            v-for="cid in member.chains"
+            :key="cid"
+            class="text-[10px] px-1.5 py-0.5 rounded font-medium"
+            :class="cid === 42
+              ? 'bg-lukso-pink/10 text-lukso-pink'
+              : 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400'"
+          >
+            {{ CHAIN_NAMES[cid] || `Chain ${cid}` }}
           </span>
           <a
             :href="explorerUrl"

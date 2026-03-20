@@ -1,10 +1,11 @@
-import { PERMISSIONS, PERMISSION_LABELS, CALL_TYPES } from './constants'
+import { decodePermissionsFromHex } from './blockchain'
+import { PERMISSION_LABELS, CALL_TYPES } from './constants'
 
 export function decodePermissions(permissionsHex: string): string[] {
-  const value = BigInt(permissionsHex)
+  const decoded = decodePermissionsFromHex(permissionsHex)
   const result: string[] = []
-  for (const [key, bit] of Object.entries(PERMISSIONS)) {
-    if (value & bit) {
+  for (const [key, active] of Object.entries(decoded)) {
+    if (active && key !== 'ALL_PERMISSIONS') {
       result.push(PERMISSION_LABELS[key] || key)
     }
   }

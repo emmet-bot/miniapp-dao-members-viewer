@@ -39,7 +39,6 @@ const { members, upProfile, loading, error } = useMembers(chainId, address)
           v-for="member in members"
           :key="member.address"
           :member="member"
-          :chain-id="chainId"
         />
       </div>
 
