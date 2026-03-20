@@ -1,5 +1,4 @@
-import { IPFS_GATEWAY } from './constants'
-import { fetchLSP3Profile } from './blockchain'
+const ENVIO_GRAPHQL = 'https://envio.lukso-mainnet.universal.tech/v1/graphql'
 
 export interface ProfileData {
   name: string
@@ -9,47 +8,97 @@ export interface ProfileData {
   backgroundImage: string | null
 }
 
-function resolveUrl(url: string): string {
-  if (url.startsWith('ipfs://')) {
-    return IPFS_GATEWAY + url.slice(7)
-  }
-  return url
-}
-
-function getBestImage(images: any[] | undefined): string | null {
-  if (!images || images.length === 0) return null
-  const first = images[0]
-  if (!first) return null
-  if (Array.isArray(first)) {
-    const sorted = [...first].sort(
-      (a: any, b: any) => (a.width || 9999) - (b.width || 9999)
-    )
-    const img = sorted.find((s: any) => (s.width || 0) >= 200) || sorted[0]
-    return img?.url ? resolveUrl(img.url) : null
-  }
-  if (first.url) return resolveUrl(first.url)
-  return null
-}
-
+/**
+ * Fetch profile data from the Envio indexer (much faster than on-chain LSP3 fetch).
+ * Works for any address that has a Universal Profile on LUKSO mainnet.
+ */
 export async function fetchProfileData(
   address: string,
-  chainId: number
+  _chainId: number
 ): Promise<ProfileData | null> {
   try {
-    const result = await fetchLSP3Profile(address, chainId)
-    if (!result) return null
+    const lower = address.toLowerCase()
+    const query = `{
+      Profile_by_pk(id: "${lower}") {
+        id
+        name
+        profileImages { src width height }
+        backgroundImages { src width height }
+        tags
+      }
+    }`
 
-    // fetchData('LSP3Profile') returns { LSP3Profile: { ... } } or the profile directly
-    const profile = result.LSP3Profile || result
+    const res = await fetch(ENVIO_GRAPHQL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query }),
+    })
+    if (!res.ok) return null
+
+    const json = await res.json()
+    const profile = json.data?.Profile_by_pk
+    if (!profile) return null
+
+    // Pick best profile image (smallest >= 200px, or first)
+    const profileImage = getBestImage(profile.profileImages)
+    const backgroundImage = getBestImage(profile.backgroundImages)
 
     return {
       name: profile.name || '',
-      description: profile.description || '',
+      description: '',
       tags: profile.tags || [],
-      profileImage: getBestImage(profile.profileImage),
-      backgroundImage: getBestImage(profile.backgroundImage),
+      profileImage,
+      backgroundImage,
     }
   } catch {
     return null
   }
+}
+
+/**
+ * Batch fetch profiles for multiple addresses at once.
+ */
+export async function fetchProfilesBatch(
+  addresses: string[]
+): Promise<Record<string, ProfileData>> {
+  if (!addresses.length) return {}
+  try {
+    const fragments = addresses.map((addr, i) =>
+      `p${i}: Profile_by_pk(id: "${addr.toLowerCase()}") { id name profileImages { src width height } backgroundImages { src width height } tags }`
+    ).join('\n')
+    const query = `{ ${fragments} }`
+
+    const res = await fetch(ENVIO_GRAPHQL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query }),
+    })
+    if (!res.ok) return {}
+
+    const json = await res.json()
+    const result: Record<string, ProfileData> = {}
+    for (let i = 0; i < addresses.length; i++) {
+      const profile = json.data?.[`p${i}`]
+      if (profile?.name) {
+        result[addresses[i].toLowerCase()] = {
+          name: profile.name || '',
+          description: '',
+          tags: profile.tags || [],
+          profileImage: getBestImage(profile.profileImages),
+          backgroundImage: getBestImage(profile.backgroundImages),
+        }
+      }
+    }
+    return result
+  } catch {
+    return {}
+  }
+}
+
+function getBestImage(images: Array<{ src: string; width: number; height: number }> | undefined): string | null {
+  if (!images?.length) return null
+  // Sort by width ascending, pick first >= 200px or smallest
+  const sorted = [...images].sort((a, b) => a.width - b.width)
+  const img = sorted.find((s) => s.width >= 200) || sorted[0]
+  return img?.src || null
 }

@@ -6,11 +6,11 @@ import {
   getAllowedERC725YDataKeys,
   isContract,
 } from '../lib/blockchain'
-import { fetchProfileData, type ProfileData } from '../lib/profile'
+import { fetchProfilesBatch, type ProfileData } from '../lib/profile'
 import {
   decodePermissions,
-  decodeAllowedCalls,
-  decodeAllowedDataKeys,
+  parseAllowedCalls,
+  parseAllowedDataKeys,
   type DecodedAllowedCall,
 } from '../lib/permissions'
 import { getBlockie } from '../lib/identicon'
@@ -23,9 +23,7 @@ export interface MemberData {
   permissions: string[]
   permissionsRaw: string | null
   allowedCalls: DecodedAllowedCall[]
-  allowedCallsRaw: string | null
   allowedDataKeys: string[]
-  allowedDataKeysRaw: string | null
   profile: ProfileData | null
   blockieUrl: string
   chains: number[]
@@ -37,28 +35,6 @@ export interface UpProfileData {
   profile: ProfileData | null
   blockieUrl: string
   chains: number[]
-}
-
-async function fetchControllerData(
-  upAddress: string,
-  chainId: number,
-  controllerAddr: string
-): Promise<{
-  permissionsHex: string | null
-  allowedCallsRaw: string | null
-  allowedDataKeysRaw: string | null
-  contractCheck: boolean
-}> {
-  const [permissionsHex, allowedCallsRaw, allowedDataKeysRaw, contractCheck] =
-    await Promise.all([
-      getPermissions(upAddress, chainId, controllerAddr).catch(() => null),
-      getAllowedCalls(upAddress, chainId, controllerAddr).catch(() => null),
-      getAllowedERC725YDataKeys(upAddress, chainId, controllerAddr).catch(
-        () => null
-      ),
-      isContract(controllerAddr, chainId),
-    ])
-  return { permissionsHex, allowedCallsRaw, allowedDataKeysRaw, contractCheck }
 }
 
 export function useMembers(
@@ -102,19 +78,6 @@ export function useMembers(
         return
       }
 
-      // Fetch UP's own profile from the first active chain
-      const profileChain = activeChains.includes(chainId.value)
-        ? chainId.value
-        : activeChains[0]
-      const upProfileData = await fetchProfileData(upAddress, profileChain)
-      upProfile.value = {
-        address: upAddress,
-        chainId: profileChain,
-        profile: upProfileData,
-        blockieUrl: getBlockie(upAddress),
-        chains: activeChains,
-      }
-
       // Build a map of unique controllers -> which chains they appear on
       const controllerChainMap = new Map<string, number[]>()
       for (const { chainId: cid, controllers } of chainResults) {
@@ -127,37 +90,43 @@ export function useMembers(
         }
       }
 
-      // Fetch data for each unique controller from its first available chain
+      const allAddresses = [upAddress, ...controllerChainMap.keys()]
+
+      // Batch fetch all profiles from Envio (single request)
+      const profiles = await fetchProfilesBatch(allAddresses)
+
+      // Set UP profile
+      const upProfileData = profiles[upAddress.toLowerCase()] || null
+      upProfile.value = {
+        address: upAddress,
+        chainId: activeChains.includes(chainId.value) ? chainId.value : activeChains[0],
+        profile: upProfileData,
+        blockieUrl: getBlockie(upAddress),
+        chains: activeChains,
+      }
+
+      // Fetch permission data for each unique controller
       const memberPromises = Array.from(controllerChainMap.entries()).map(
         async ([controllerAddr, chains]) => {
-          // Use the first chain this controller appears on for detailed data
-          const cid = chains.includes(chainId.value)
-            ? chainId.value
-            : chains[0]
+          const cid = chains.includes(chainId.value) ? chainId.value : chains[0]
 
-          const { permissionsHex, allowedCallsRaw, allowedDataKeysRaw, contractCheck } =
-            await fetchControllerData(upAddress, cid, controllerAddr)
+          const [permissionsHex, allowedCallsValue, allowedDataKeysValue, contractCheck] =
+            await Promise.all([
+              getPermissions(upAddress, cid, controllerAddr).catch(() => null),
+              getAllowedCalls(upAddress, cid, controllerAddr).catch(() => null),
+              getAllowedERC725YDataKeys(upAddress, cid, controllerAddr).catch(() => null),
+              isContract(controllerAddr, cid),
+            ])
 
-          let profile: ProfileData | null = null
-          if (contractCheck) {
-            profile = await fetchProfileData(controllerAddr, cid)
-          }
+          const profile = profiles[controllerAddr] || null
 
           return {
             address: controllerAddr,
             isContract: contractCheck,
-            permissions: permissionsHex
-              ? decodePermissions(permissionsHex)
-              : [],
+            permissions: permissionsHex ? decodePermissions(permissionsHex) : [],
             permissionsRaw: permissionsHex,
-            allowedCalls: allowedCallsRaw
-              ? decodeAllowedCalls(allowedCallsRaw as string)
-              : [],
-            allowedCallsRaw: allowedCallsRaw as string | null,
-            allowedDataKeys: allowedDataKeysRaw
-              ? decodeAllowedDataKeys(allowedDataKeysRaw as string)
-              : [],
-            allowedDataKeysRaw: allowedDataKeysRaw as string | null,
+            allowedCalls: parseAllowedCalls(allowedCallsValue),
+            allowedDataKeys: parseAllowedDataKeys(allowedDataKeysValue),
             profile,
             blockieUrl: getBlockie(controllerAddr),
             chains,
