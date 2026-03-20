@@ -39,16 +39,29 @@ function truncateHex(hex: string, chars = 8): string {
 <template>
   <div class="bg-white dark:bg-neutral-900 rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.08)] p-4 transition-all hover:shadow-[0_4px_16px_rgba(0,0,0,0.12)]">
     <!-- Profile row -->
-    <div class="flex items-center gap-3 mb-3">
-      <div class="relative flex-shrink-0">
+    <div class="flex items-start gap-3 mb-3">
+      <a
+        :href="explorerUrl"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="relative flex-shrink-0 hover:opacity-80 transition-opacity"
+      >
         <lukso-profile
+          v-if="member.isContract && displayName"
           :profile-url="profileImageUrl"
           :profile-address="member.address"
           has-identicon
           size="medium"
         ></lukso-profile>
-      </div>
+        <lukso-profile
+          v-else
+          :profile-url="member.blockieUrl"
+          :profile-address="member.address"
+          size="medium"
+        ></lukso-profile>
+      </a>
       <div class="min-w-0 flex-1">
+        <!-- Name row -->
         <div class="flex items-center gap-1.5">
           <template v-if="displayName">
             <lukso-username
@@ -69,14 +82,24 @@ function truncateHex(hex: string, chars = 8): string {
             </a>
           </template>
         </div>
-        <div class="flex items-center gap-1.5 mt-0.5">
+        <!-- Full address -->
+        <a
+          :href="explorerUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="block text-[11px] font-mono text-neutral-400 dark:text-neutral-600 hover:text-lukso-pink transition-colors break-all mt-0.5 leading-tight"
+        >
+          {{ member.address }}
+        </a>
+        <!-- Badges row -->
+        <div class="flex items-center gap-1.5 mt-1.5 flex-wrap">
           <span
             class="text-[10px] px-1.5 py-0.5 rounded font-medium"
             :class="member.isContract
               ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'
               : 'bg-neutral-200 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400'"
           >
-            {{ member.isContract ? 'Contract' : 'EOA' }}
+            {{ member.isContract ? 'Universal Profile' : 'EOA' }}
           </span>
           <!-- Chain badges -->
           <span
@@ -89,14 +112,6 @@ function truncateHex(hex: string, chars = 8): string {
           >
             {{ CHAIN_NAMES[cid] || `Chain ${cid}` }}
           </span>
-          <a
-            :href="explorerUrl"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="text-[10px] font-mono text-neutral-400 dark:text-neutral-500 hover:text-lukso-pink transition-colors"
-          >
-            {{ shortAddress }}
-          </a>
         </div>
       </div>
     </div>
