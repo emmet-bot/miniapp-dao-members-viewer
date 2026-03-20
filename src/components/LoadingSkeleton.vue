@@ -1,15 +1,5 @@
 <template>
   <div class="space-y-4">
-    <!-- Header skeleton -->
-    <div class="bg-white dark:bg-neutral-900 rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.08)] p-6">
-      <div class="flex items-center gap-4">
-        <div class="w-16 h-16 rounded-full bg-neutral-200 dark:bg-neutral-800 animate-pulse" />
-        <div class="flex-1 space-y-2">
-          <div class="h-5 bg-neutral-200 dark:bg-neutral-800 rounded-lg w-48 animate-pulse" />
-          <div class="h-4 bg-neutral-200 dark:bg-neutral-800 rounded-lg w-32 animate-pulse" />
-        </div>
-      </div>
-    </div>
     <!-- Card skeletons -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       <div
