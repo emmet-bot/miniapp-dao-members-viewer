@@ -134,7 +134,16 @@ export function useMembers(
         }
       )
 
-      members.value = await Promise.all(memberPromises)
+      const allMembers = await Promise.all(memberPromises)
+
+      // Sort: UPs with profiles first, then other contracts, then EOAs
+      allMembers.sort((a, b) => {
+        const scoreA = a.profile ? 0 : a.isContract ? 1 : 2
+        const scoreB = b.profile ? 0 : b.isContract ? 1 : 2
+        return scoreA - scoreB
+      })
+
+      members.value = allMembers
     } catch (e: any) {
       error.value = e.message || 'Failed to fetch members'
     } finally {
